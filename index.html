@@ -1,471 +1,488 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, GripVertical, AlertCircle, Trophy, RefreshCw, Lightbulb } from 'lucide-react';
-
-// 主題與句子資料
-const TOPICS = [
-  {
-    id: 'uniform',
-    icon: '👕',
-    title: '小學生應該穿制服嗎？',
-    items: [
-      { id: 'u1', text: '我認為小學生應該穿制服上學。', type: 'argument' },
-      { id: 'u2', text: '每天早上不用煩惱穿什麼，能更快準備出門，不會遲到。', type: 'evidence' },
-      { id: 'u3', text: '大家穿一樣的衣服，不會互相比較名牌，班級會更有向心力。', type: 'evidence' },
-      { id: 'u4', text: '校外教學時，老師一眼就能認出我們學校的學生，比較安全。', type: 'evidence' },
-      { id: 'u5', text: '穿制服既省時又公平，還能代表學校形象，是更好的選擇。', type: 'conclusion' },
-    ]
-  },
-  {
-    id: 'tablet',
-    icon: '📱',
-    title: '平板電腦能取代課本嗎？',
-    items: [
-      { id: 't1', text: '我認為平板電腦不能完全取代紙本課本。', type: 'argument' },
-      { id: 't2', text: '長時間盯著螢幕容易讓眼睛疲勞，讀紙本書對視力比較好。', type: 'evidence' },
-      { id: 't3', text: '平板裡有很多遊戲，上課容易分心，課本能讓我們更專心聽講。', type: 'evidence' },
-      { id: 't4', text: '親手寫字能加強記憶，手寫的感覺是平板無法取代的。', type: 'evidence' },
-      { id: 't5', text: '平板是很好的輔助工具，但為了健康與學習，課本依然不可或缺。', type: 'conclusion' },
-    ]
-  },
-  {
-    id: 'chore',
-    icon: '🧹',
-    title: '小學生該幫忙做家事嗎？',
-    items: [
-      { id: 'c1', text: '我認為小學生應該主動幫忙分擔家事。', type: 'argument' },
-      { id: 'c2', text: '透過洗碗、掃地，我們能學會照顧自己，長大會更獨立。', type: 'evidence' },
-      { id: 'c3', text: '爸爸媽媽工作很辛苦，我們幫忙就能讓他們有更多休息時間。', type: 'evidence' },
-      { id: 'c4', text: '家是大家的，每個人都該出一份力，這能培養我們的責任感。', type: 'evidence' },
-      { id: 'c5', text: '做家事是一種學習與體貼的表現，我們應該從簡單的做起。', type: 'conclusion' },
-    ]
-  },
-  {
-    id: 'homework',
-    icon: '📚',
-    title: '學生該有回家作業嗎？',
-    items: [
-      { id: 'h1', text: '我認為學生不應該有太多的回家作業。', type: 'argument' },
-      { id: 'h2', text: '在學校已經學習了一整天，回家後大腦需要適度的休息與放鬆。', type: 'evidence' },
-      { id: 'h3', text: '如果沒有沉重的作業，我們就能有時間去運動或培養其他興趣。', type: 'evidence' },
-      { id: 'h4', text: '有時作業太多會寫到很晚，導致睡眠不足，反而影響隔天上課精神。', type: 'evidence' },
-      { id: 'h5', text: '總而言之，減少回家作業能讓學生擁有更健康、均衡的生活發展。', type: 'conclusion' },
-    ]
-  },
-  {
-    id: 'allowance',
-    icon: '💰',
-    title: '做家事該領零用錢嗎？',
-    items: [
-      { id: 'a1', text: '我認為幫忙做家事不應該領取零用錢。', type: 'argument' },
-      { id: 'a2', text: '家是大家共同生活的地方，維持環境整潔是每個家人的基本責任。', type: 'evidence' },
-      { id: 'a3', text: '父母平時辛苦照顧我們也沒有收費，我們應該抱持感恩的心主動幫忙。', type: 'evidence' },
-      { id: 'a4', text: '如果凡事都要給錢才願意做，容易讓人變得唯利是圖，失去付出的美德。', type: 'evidence' },
-      { id: 'a5', text: '因此，做家事是基於愛與對家庭的責任，不應該用金錢來衡量。', type: 'conclusion' },
-    ]
-  },
-  {
-    id: 'pet',
-    icon: '🐶',
-    title: '家裡應該養寵物嗎？',
-    items: [
-      { id: 'p1', text: '我認為家裡非常適合飼養寵物。', type: 'argument' },
-      { id: 'p2', text: '寵物能陪伴我們，在我們難過或覺得孤單時給予最溫暖的安慰。', type: 'evidence' },
-      { id: 'p3', text: '照顧寵物需要定時餵食和清理，這能培養我們做事的耐心與責任心。', type: 'evidence' },
-      { id: 'p4', text: '像是養狗需要每天帶牠去散步，同時也能增加全家人的運動量。', type: 'evidence' },
-      { id: 'p5', text: '雖然照顧寵物很花時間，但牠們帶來的快樂與成長是無法取代的。', type: 'conclusion' },
-    ]
-  },
-  {
-    id: 'nap',
-    icon: '😴',
-    title: '小學生該有自主午睡權嗎？',
-    items: [
-      { id: 'n1', text: '我支持國小生應該擁有「自主午睡權」。', type: 'argument' },
-      { id: 'n2', text: '每個人的生理時鐘不同，有些人中午不睡覺，下午依然精神百倍。', type: 'evidence' },
-      { id: 'n3', text: '強迫睡不著的學生趴在桌上，反而會讓他們覺得痛苦，甚至造成肌肉痠痛。', type: 'evidence' },
-      { id: 'n4', text: '不午睡的同學可以利用這段時間去圖書館安靜看書，讓時間做更有效的運用。', type: 'evidence' },
-      { id: 'n5', text: '所以，只要保持安靜不打擾別人，學校應該尊重學生自主選擇是否午睡。', type: 'conclusion' },
-    ]
-  },
-  {
-    id: 'teammate',
-    icon: '🤝',
-    title: '輸掉比賽該檢討隊友嗎？',
-    items: [
-      { id: 'm1', text: '我認為輸掉比賽時，絕對不應該互相指責或檢討隊友。', type: 'argument' },
-      { id: 'm2', text: '團隊比賽的輸贏是大家共同承擔的，把錯推給其中一個人非常不公平。', type: 'evidence' },
-      { id: 'm3', text: '互相怪罪會嚴重破壞團隊的感情，下次比賽時大家會更沒有默契。', type: 'evidence' },
-      { id: 'm4', text: '我們應該一起找出失敗的原因並努力練習，而不是用言語傷害彼此。', type: 'evidence' },
-      { id: 'm5', text: '總結來說，包容與鼓勵才能讓團隊變得更強大，互相指責只會造成分裂。', type: 'conclusion' },
-    ]
-  },
-  {
-    id: 'friend',
-    icon: '🗣️',
-    title: '好友做錯事該告訴老師嗎？',
-    items: [
-      { id: 'f1', text: '我認為好朋友做錯事時，還是應該勇敢告訴老師。', type: 'argument' },
-      { id: 'f2', text: '真正的朋友不應該幫忙隱瞞錯誤，這樣反而會害他一錯再錯。', type: 'evidence' },
-      { id: 'f3', text: '老師有豐富的經驗，能用正確的方法引導朋友認識錯誤並改正。', type: 'evidence' },
-      { id: 'f4', text: '如果朋友做的是危險或欺負別人的事，及時報告老師才能保護所有人。', type: 'evidence' },
-      { id: 'f5', text: '因此，告訴老師不是背叛，而是幫助好朋友走回正軌的最佳選擇。', type: 'conclusion' },
-    ]
-  }
-];
-
-// 打亂陣列的輔助函數
-const shuffleArray = (array) => {
-  const newArray = [...array];
-  for (let i = newArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-  }
-  return newArray;
-};
-
-export default function App() {
-  const [currentTopicIdx, setCurrentTopicIdx] = useState(0);
-  const [blocks, setBlocks] = useState([]);
-  const [selectedBlockId, setSelectedBlockId] = useState(null);
-  const [gameState, setGameState] = useState('playing'); // playing, checking, success
-  const [checkResult, setCheckResult] = useState(null);
-
-  // 初始化遊戲
-  const initGame = (topicIdx) => {
-    const topic = TOPICS[topicIdx];
-    const initialBlocks = topic.items.map(item => ({
-      ...item,
-      category: 'pool', // 初始都在積木池
-      status: 'idle'    // idle, correct, wrong
-    }));
-    setBlocks(shuffleArray(initialBlocks));
-    setCurrentTopicIdx(topicIdx);
-    setGameState('playing');
-    setCheckResult(null);
-    setSelectedBlockId(null);
-  };
-
-  useEffect(() => {
-    initGame(0);
-  }, []);
-
-  // 處理拖曳開始
-  const handleDragStart = (e, id) => {
-    e.dataTransfer.setData('blockId', id);
-    setSelectedBlockId(id); // 為了視覺回饋
-  };
-
-  // 處理放置
-  const handleDrop = (e, targetCategory) => {
-    e.preventDefault();
-    const blockId = e.dataTransfer.getData('blockId');
-    moveBlock(blockId, targetCategory);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-
-  // 移動積木的共用邏輯 (支援拖曳與點擊)
-  const moveBlock = (blockId, targetCategory) => {
-    if (!blockId) return;
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小小辯論家：議論文挑戰</title>
     
-    setBlocks(prev => prev.map(block => {
-      if (block.id === blockId) {
-        return { ...block, category: targetCategory, status: 'idle' };
-      }
-      return block;
-    }));
-    setSelectedBlockId(null);
-    setGameState('playing');
-  };
+    <!-- 引入 Tailwind CSS 進行版面美化 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 引入 React 核心函式庫 (網頁版CDN) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- 引入 Babel 讓瀏覽器能看得懂 React 語法 -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800">
+    
+    <!-- 遊戲將會顯示在這個 div 裡面 -->
+    <div id="root"></div>
 
-  // 處理點擊 (支援平板/無滑鼠拖曳)
-  const handleBlockClick = (id) => {
-    if (selectedBlockId === id) {
-      setSelectedBlockId(null); // 取消選取
-    } else {
-      setSelectedBlockId(id);
-    }
-  };
+    <!-- 遊戲的主程式邏輯 -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-  const handleZoneClick = (category) => {
-    if (selectedBlockId) {
-      moveBlock(selectedBlockId, category);
-    }
-  };
+        // 自訂圖示 (替換原本需要下載的 lucide-react)
+        const GripIcon = () => <svg className="w-5 h-5 lg:w-6 lg:h-6 flex-shrink-0 text-slate-400 cursor-grab" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9h8M8 15h8"></path></svg>;
+        const CheckIcon = () => <svg className="w-5 h-5 lg:w-6 lg:h-6 flex-shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>;
+        const XIcon = () => <svg className="w-5 h-5 lg:w-6 lg:h-6 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>;
 
-  // 檢查答案
-  const checkAnswers = () => {
-    let allCorrect = true;
-    let anyUnplaced = false;
+        // 主題與句子資料 (包含全部 9 個主題)
+        const TOPICS = [
+          {
+            id: 'uniform', icon: '👕', title: '小學生應該穿制服嗎？',
+            items: [
+              { id: 'u1', text: '我認為小學生應該穿制服上學。', type: 'argument' },
+              { id: 'u2', text: '每天早上不用煩惱穿什麼，能更快準備出門，不會遲到。', type: 'evidence' },
+              { id: 'u3', text: '大家穿一樣的衣服，不會互相比較名牌，班級會更有向心力。', type: 'evidence' },
+              { id: 'u4', text: '校外教學時，老師一眼就能認出我們學校的學生，比較安全。', type: 'evidence' },
+              { id: 'u5', text: '穿制服既省時又公平，還能代表學校形象，是更好的選擇。', type: 'conclusion' },
+            ]
+          },
+          {
+            id: 'tablet', icon: '📱', title: '平板電腦能取代課本嗎？',
+            items: [
+              { id: 't1', text: '我認為平板電腦不能完全取代紙本課本。', type: 'argument' },
+              { id: 't2', text: '長時間盯著螢幕容易讓眼睛疲勞，讀紙本書對視力比較好。', type: 'evidence' },
+              { id: 't3', text: '平板裡有很多遊戲，上課容易分心，課本能讓我們更專心聽講。', type: 'evidence' },
+              { id: 't4', text: '親手寫字能加強記憶，手寫的感覺是平板無法取代的。', type: 'evidence' },
+              { id: 't5', text: '平板是很好的輔助工具，但為了健康與學習，課本依然不可或缺。', type: 'conclusion' },
+            ]
+          },
+          {
+            id: 'chore', icon: '🧹', title: '小學生該幫忙做家事嗎？',
+            items: [
+              { id: 'c1', text: '我認為小學生應該主動幫忙分擔家事。', type: 'argument' },
+              { id: 'c2', text: '透過洗碗、掃地，我們能學會照顧自己，長大會更獨立。', type: 'evidence' },
+              { id: 'c3', text: '爸爸媽媽工作很辛苦，我們幫忙就能讓他們有更多休息時間。', type: 'evidence' },
+              { id: 'c4', text: '家是大家的，每個人都該出一份力，這能培養我們的責任感。', type: 'evidence' },
+              { id: 'c5', text: '做家事是一種學習與體貼的表現，我們應該從簡單的做起。', type: 'conclusion' },
+            ]
+          },
+          {
+            id: 'homework', icon: '📚', title: '學生該有回家作業嗎？',
+            items: [
+              { id: 'h1', text: '我認為學生不應該有太多的回家作業。', type: 'argument' },
+              { id: 'h2', text: '在學校已經學習了一整天，回家後大腦需要適度的休息與放鬆。', type: 'evidence' },
+              { id: 'h3', text: '如果沒有沉重的作業，我們就能有時間去運動或培養其他興趣。', type: 'evidence' },
+              { id: 'h4', text: '有時作業太多會寫到很晚，導致睡眠不足，反而影響隔天上課精神。', type: 'evidence' },
+              { id: 'h5', text: '總而言之，減少回家作業能讓學生擁有更健康、均衡的生活發展。', type: 'conclusion' },
+            ]
+          },
+          {
+            id: 'allowance', icon: '💰', title: '做家事該領零用錢嗎？',
+            items: [
+              { id: 'a1', text: '我認為幫忙做家事不應該領取零用錢。', type: 'argument' },
+              { id: 'a2', text: '家是大家共同生活的地方，維持環境整潔是每個家人的基本責任。', type: 'evidence' },
+              { id: 'a3', text: '父母平時辛苦照顧我們也沒有收費，我們應該抱持感恩的心主動幫忙。', type: 'evidence' },
+              { id: 'a4', text: '如果凡事都要給錢才願意做，容易讓人變得唯利是圖，失去付出的美德。', type: 'evidence' },
+              { id: 'a5', text: '因此，做家事是基於愛與對家庭的責任，不應該用金錢來衡量。', type: 'conclusion' },
+            ]
+          },
+          {
+            id: 'pet', icon: '🐶', title: '家裡應該養寵物嗎？',
+            items: [
+              { id: 'p1', text: '我認為家裡非常適合飼養寵物。', type: 'argument' },
+              { id: 'p2', text: '寵物能陪伴我們，在我們難過或覺得孤單時給予最溫暖的安慰。', type: 'evidence' },
+              { id: 'p3', text: '照顧寵物需要定時餵食和清理，這能培養我們做事的耐心與責任心。', type: 'evidence' },
+              { id: 'p4', text: '像是養狗需要每天帶牠去散步，同時也能增加全家人的運動量。', type: 'evidence' },
+              { id: 'p5', text: '雖然照顧寵物很花時間，但牠們帶來的快樂與成長是無法取代的。', type: 'conclusion' },
+            ]
+          },
+          {
+            id: 'nap', icon: '😴', title: '小學生該有自主午睡權嗎？',
+            items: [
+              { id: 'n1', text: '我支持國小生應該擁有「自主午睡權」。', type: 'argument' },
+              { id: 'n2', text: '每個人的生理時鐘不同，有些人中午不睡覺，下午依然精神百倍。', type: 'evidence' },
+              { id: 'n3', text: '強迫睡不著的學生趴在桌上，反而會讓他們覺得痛苦，甚至造成肌肉痠痛。', type: 'evidence' },
+              { id: 'n4', text: '不午睡的同學可以利用這段時間去圖書館安靜看書，讓時間做更有效的運用。', type: 'evidence' },
+              { id: 'n5', text: '所以，只要保持安靜不打擾別人，學校應該尊重學生自主選擇是否午睡。', type: 'conclusion' },
+            ]
+          },
+          {
+            id: 'teammate', icon: '🤝', title: '輸掉比賽該檢討隊友嗎？',
+            items: [
+              { id: 'm1', text: '我認為輸掉比賽時，絕對不應該互相指責或檢討隊友。', type: 'argument' },
+              { id: 'm2', text: '團隊比賽的輸贏是大家共同承擔的，把錯推給其中一個人非常不公平。', type: 'evidence' },
+              { id: 'm3', text: '互相怪罪會嚴重破壞團隊的感情，下次比賽時大家會更沒有默契。', type: 'evidence' },
+              { id: 'm4', text: '我們應該一起找出失敗的原因並努力練習，而不是用言語傷害彼此。', type: 'evidence' },
+              { id: 'm5', text: '總結來說，包容與鼓勵才能讓團隊變得更強大，互相指責只會造成分裂。', type: 'conclusion' },
+            ]
+          },
+          {
+            id: 'friend', icon: '🗣️', title: '好友做錯事該報告嗎？',
+            items: [
+              { id: 'f1', text: '我認為好朋友做錯事時，還是應該勇敢告訴老師。', type: 'argument' },
+              { id: 'f2', text: '真正的朋友不應該幫忙隱瞞錯誤，這樣反而會害他一錯再錯。', type: 'evidence' },
+              { id: 'f3', text: '老師有豐富的經驗，能用正確的方法引導朋友認識錯誤並改正。', type: 'evidence' },
+              { id: 'f4', text: '如果朋友做的是危險或欺負別人的事，及時報告老師才能保護所有人。', type: 'evidence' },
+              { id: 'f5', text: '因此，告訴老師不是背叛，而是幫助好朋友走回正軌的最佳選擇。', type: 'conclusion' },
+            ]
+          }
+        ];
 
-    const newBlocks = blocks.map(block => {
-      if (block.category === 'pool') {
-        anyUnplaced = true;
-        return { ...block, status: 'idle' };
-      }
-      const isCorrect = block.category === block.type;
-      if (!isCorrect) allCorrect = false;
-      return { ...block, status: isCorrect ? 'correct' : 'wrong' };
-    });
+        // 打亂陣列的輔助函數
+        const shuffleArray = (array) => {
+          const newArray = [...array];
+          for (let i = newArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+          }
+          return newArray;
+        };
 
-    setBlocks(newBlocks);
+        function App() {
+          const [currentTopicIdx, setCurrentTopicIdx] = useState(0);
+          const [blocks, setBlocks] = useState([]);
+          const [selectedBlockId, setSelectedBlockId] = useState(null);
+          const [gameState, setGameState] = useState('playing'); // playing, checking, success
+          const [checkResult, setCheckResult] = useState(null);
 
-    if (anyUnplaced) {
-      setCheckResult('哎呀，還有積木沒有放進文章裡喔！');
-      setGameState('checking');
-    } else if (allCorrect) {
-      setGameState('success');
-    } else {
-      setCheckResult('有些積木放錯位置了，紅色框框的需要調整一下喔！');
-      setGameState('checking');
-    }
-  };
+          // 初始化遊戲
+          const initGame = (topicIdx) => {
+            const topic = TOPICS[topicIdx];
+            const initialBlocks = topic.items.map(item => ({
+              ...item,
+              category: 'pool', // 初始都在積木池
+              status: 'idle'    // idle, correct, wrong
+            }));
+            setBlocks(shuffleArray(initialBlocks));
+            setCurrentTopicIdx(topicIdx);
+            setGameState('playing');
+            setCheckResult(null);
+            setSelectedBlockId(null);
+          };
 
-  // 算各區域目前的數量
-  const getZoneBlocks = (category) => blocks.filter(b => b.category === category);
+          useEffect(() => {
+            initGame(0);
+          }, []);
 
-  return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 lg:p-8 font-sans text-slate-800">
-      <div className="max-w-7xl mx-auto">
-        
-        {/* 標題與主題選擇 */}
-        <header className="mb-6 lg:mb-10 text-center">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-indigo-700 flex items-center justify-center gap-3 mb-6">
-            <Trophy className="text-yellow-500 w-8 h-8 lg:w-10 lg:h-10" />
-            小小辯論家：議論文挑戰
-            <Trophy className="text-yellow-500 w-8 h-8 lg:w-10 lg:h-10" />
-          </h1>
-          <div className="flex flex-wrap justify-center gap-2 lg:gap-3">
-            {TOPICS.map((topic, idx) => (
-              <button
-                key={topic.id}
-                onClick={() => initGame(idx)}
-                className={`px-4 py-2 lg:px-5 lg:py-3 rounded-full font-bold text-sm md:text-base lg:text-lg transition-all duration-300 flex items-center gap-2
-                  ${currentTopicIdx === idx 
-                    ? 'bg-indigo-600 text-white shadow-lg scale-105' 
-                    : 'bg-white text-indigo-600 border-2 border-indigo-200 hover:bg-indigo-50'}`}
-              >
-                <span className="text-lg lg:text-xl">{topic.icon}</span>
-                {topic.title}
-              </button>
-            ))}
-          </div>
-        </header>
+          // 處理拖曳開始
+          const handleDragStart = (e, id) => {
+            e.dataTransfer.setData('blockId', id);
+            setSelectedBlockId(id); // 為了視覺回饋
+          };
 
-        {/* 遊戲主要版面 */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
-          
-          {/* 左側/上方：積木池 */}
-          <div className="xl:col-span-5 flex flex-col gap-4 lg:gap-6">
+          // 處理放置
+          const handleDrop = (e, targetCategory) => {
+            e.preventDefault();
+            const blockId = e.dataTransfer.getData('blockId');
+            moveBlock(blockId, targetCategory);
+          };
+
+          const handleDragOver = (e) => {
+            e.preventDefault();
+          };
+
+          // 移動積木的共用邏輯 (支援拖曳與點擊)
+          const moveBlock = (blockId, targetCategory) => {
+            if (!blockId) return;
+            
+            setBlocks(prev => prev.map(block => {
+              if (block.id === blockId) {
+                return { ...block, category: targetCategory, status: 'idle' };
+              }
+              return block;
+            }));
+            setSelectedBlockId(null);
+            setGameState('playing');
+          };
+
+          // 處理點擊 (支援平板/無滑鼠拖曳)
+          const handleBlockClick = (id) => {
+            if (selectedBlockId === id) {
+              setSelectedBlockId(null); // 取消選取
+            } else {
+              setSelectedBlockId(id);
+            }
+          };
+
+          const handleZoneClick = (category) => {
+            if (selectedBlockId) {
+              moveBlock(selectedBlockId, category);
+            }
+          };
+
+          // 檢查答案
+          const checkAnswers = () => {
+            let allCorrect = true;
+            let anyUnplaced = false;
+
+            const newBlocks = blocks.map(block => {
+              if (block.category === 'pool') {
+                anyUnplaced = true;
+                return { ...block, status: 'idle' };
+              }
+              const isCorrect = block.category === block.type;
+              if (!isCorrect) allCorrect = false;
+              return { ...block, status: isCorrect ? 'correct' : 'wrong' };
+            });
+
+            setBlocks(newBlocks);
+
+            if (anyUnplaced) {
+              setCheckResult('哎呀，還有積木沒有放進文章裡喔！');
+              setGameState('checking');
+            } else if (allCorrect) {
+              setGameState('success');
+            } else {
+              setCheckResult('有些積木放錯位置了，紅色框框的需要調整一下喔！');
+              setGameState('checking');
+            }
+          };
+
+          // 算各區域目前的數量
+          const getZoneBlocks = (category) => blocks.filter(b => b.category === category);
+
+          return (
+            <div className="min-h-screen p-4 md:p-6 lg:p-8">
+              <div className="max-w-7xl mx-auto">
+                
+                {/* 標題與主題選擇 */}
+                <header className="mb-6 lg:mb-10 text-center">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-indigo-700 flex items-center justify-center gap-3 mb-6">
+                    <span className="text-3xl lg:text-5xl">🏆</span>
+                    小小辯論家：議論文挑戰
+                    <span className="text-3xl lg:text-5xl">🏆</span>
+                  </h1>
+                  <div className="flex flex-wrap justify-center gap-2 lg:gap-3">
+                    {TOPICS.map((topic, idx) => (
+                      <button
+                        key={topic.id}
+                        onClick={() => initGame(idx)}
+                        className={`px-4 py-2 lg:px-5 lg:py-3 rounded-full font-bold text-sm md:text-base lg:text-lg transition-all duration-300 flex items-center gap-2
+                          ${currentTopicIdx === idx 
+                            ? 'bg-indigo-600 text-white shadow-lg scale-105' 
+                            : 'bg-white text-indigo-600 border-2 border-indigo-200 hover:bg-indigo-50'}`}
+                      >
+                        <span className="text-lg lg:text-xl">{topic.icon}</span>
+                        {topic.title}
+                      </button>
+                    ))}
+                  </div>
+                </header>
+
+                {/* 遊戲主要版面 */}
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
+                  
+                  {/* 左側/上方：積木池 */}
+                  <div className="xl:col-span-5 flex flex-col gap-4 lg:gap-6">
+                    <div 
+                      className={`bg-white rounded-2xl p-4 lg:p-6 border-4 border-dashed min-h-[250px] transition-colors
+                        ${selectedBlockId ? 'border-indigo-400 bg-indigo-50/30' : 'border-slate-300'}
+                      `}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, 'pool')}
+                      onClick={() => handleZoneClick('pool')}
+                    >
+                      <div className="flex items-center gap-2 mb-4 text-slate-500 font-bold text-lg lg:text-xl">
+                        <span className="text-2xl">💡</span>
+                        <span>想法積木池 (請將下方積木分類)</span>
+                      </div>
+                      
+                      <div className="flex flex-col gap-3 lg:gap-4">
+                        {getZoneBlocks('pool').map(block => (
+                          <BlockCard 
+                            key={block.id} 
+                            block={block} 
+                            isSelected={selectedBlockId === block.id}
+                            onDragStart={handleDragStart}
+                            onClick={handleBlockClick}
+                          />
+                        ))}
+                        {getZoneBlocks('pool').length === 0 && gameState !== 'success' && (
+                          <div className="text-center text-slate-400 py-10 font-medium lg:text-lg">
+                            積木都拿完了！請點擊右下角檢查答案！
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* 提示區 */}
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 lg:p-5 text-amber-800 text-base lg:text-lg shadow-sm">
+                      <p className="font-bold flex items-center gap-2 mb-2 text-lg lg:text-xl">
+                        <span className="text-2xl">⚠️</span> 操作提示：
+                      </p>
+                      <ul className="list-disc pl-6 space-y-1.5 lg:space-y-2">
+                        <li>【電腦】可以直接<strong>拖曳</strong>積木到右方的籃子裡。</li>
+                        <li>【平板/電視】請先<strong>點擊</strong>積木，再<strong>點擊</strong>目標籃子。</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* 右側：文章結構區 */}
+                  <div className="xl:col-span-7 flex flex-col gap-4 lg:gap-6 relative">
+                    
+                    {/* 成功遮罩 */}
+                    {gameState === 'success' && (
+                      <div className="absolute inset-0 z-10 bg-white/90 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center transition-all duration-500">
+                        <div className="text-6xl lg:text-8xl mb-4 drop-shadow-lg animate-bounce">🏆</div>
+                        <h2 className="text-3xl lg:text-5xl font-bold text-green-600 mb-3">太棒了！完全正確！</h2>
+                        <p className="text-slate-600 text-lg lg:text-xl mb-8">你已經掌握了這篇議論文的結構！</p>
+                        <button 
+                          onClick={() => initGame(currentTopicIdx)}
+                          className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold text-lg lg:text-xl flex items-center gap-3 shadow-lg transition-transform hover:scale-105"
+                        >
+                          <span className="text-2xl">🔄</span> 再挑戰一次
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 論點區 */}
+                    <DropZone 
+                      title="第一段：我的論點 (主張)" 
+                      category="argument"
+                      description="這篇文章主要想表達的立場是什麼？"
+                      colorClass="bg-blue-50 border-blue-200"
+                      headerColorClass="bg-blue-500"
+                      blocks={getZoneBlocks('argument')}
+                      selectedBlockId={selectedBlockId}
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                      onClick={handleZoneClick}
+                      onDragStart={handleDragStart}
+                      onBlockClick={handleBlockClick}
+                    />
+
+                    {/* 證據區 */}
+                    <DropZone 
+                      title="第二段：證據 (理由與例子)" 
+                      category="evidence"
+                      description="有哪些理由或生活經驗可以支持你的觀點呢？(可放多個)"
+                      colorClass="bg-emerald-50 border-emerald-200"
+                      headerColorClass="bg-emerald-500"
+                      blocks={getZoneBlocks('evidence')}
+                      selectedBlockId={selectedBlockId}
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                      onClick={handleZoneClick}
+                      onDragStart={handleDragStart}
+                      onBlockClick={handleBlockClick}
+                    />
+
+                    {/* 結論區 */}
+                    <DropZone 
+                      title="第三段：結論 (總結)" 
+                      category="conclusion"
+                      description="最後一句話，總結你的看法並再次強調。"
+                      colorClass="bg-orange-50 border-orange-200"
+                      headerColorClass="bg-orange-500"
+                      blocks={getZoneBlocks('conclusion')}
+                      selectedBlockId={selectedBlockId}
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                      onClick={handleZoneClick}
+                      onDragStart={handleDragStart}
+                      onBlockClick={handleBlockClick}
+                    />
+
+                    {/* 操作按鈕與回饋 */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
+                      <div className="flex-1">
+                        {gameState === 'checking' && checkResult && (
+                          <div className="text-red-600 font-bold bg-red-100 px-4 py-3 rounded-xl inline-block animate-pulse text-base lg:text-lg">
+                            {checkResult}
+                          </div>
+                        )}
+                      </div>
+                      <button 
+                        onClick={checkAnswers}
+                        disabled={gameState === 'success'}
+                        className="w-full sm:w-auto px-8 lg:px-10 py-3 lg:py-4 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-lg lg:text-xl shadow-lg disabled:opacity-50 transition-all hover:-translate-y-1"
+                      >
+                        完成！檢查答案
+                      </button>
+                    </div>
+                    
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // 可重複使用的拖曳區域元件
+        function DropZone({ 
+          title, description, category, colorClass, headerColorClass, 
+          blocks, selectedBlockId, onDragOver, onDrop, onClick, 
+          onDragStart, onBlockClick 
+        }) {
+          return (
             <div 
-              className={`bg-white rounded-2xl p-4 lg:p-6 border-4 border-dashed min-h-[250px] transition-colors
-                ${selectedBlockId ? 'border-indigo-400 bg-indigo-50/30' : 'border-slate-300'}
+              className={`rounded-2xl border-2 overflow-hidden shadow-sm transition-colors min-h-[150px] lg:min-h-[180px] flex flex-col
+                ${colorClass}
+                ${selectedBlockId ? 'ring-4 ring-indigo-300 ring-opacity-50 cursor-pointer' : ''}
               `}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, 'pool')}
-              onClick={() => handleZoneClick('pool')}
+              onDragOver={onDragOver}
+              onDrop={(e) => onDrop(e, category)}
+              onClick={() => onClick(category)}
             >
-              <div className="flex items-center gap-2 mb-4 text-slate-500 font-bold text-lg lg:text-xl">
-                <Lightbulb className="w-6 h-6" />
-                <span>想法積木池 (請將下方積木分類)</span>
+              <div className={`${headerColorClass} text-white px-4 py-2 lg:px-6 lg:py-3 font-bold flex flex-col sm:flex-row sm:items-center sm:justify-between`}>
+                <span className="text-lg lg:text-xl">{title}</span>
+                <span className="text-sm lg:text-base opacity-90 font-normal mt-1 sm:mt-0">{description}</span>
               </div>
-              
-              <div className="flex flex-col gap-3 lg:gap-4">
-                {getZoneBlocks('pool').map(block => (
-                  <BlockCard 
-                    key={block.id} 
-                    block={block} 
-                    isSelected={selectedBlockId === block.id}
-                    onDragStart={handleDragStart}
-                    onClick={handleBlockClick}
-                  />
-                ))}
-                {getZoneBlocks('pool').length === 0 && gameState !== 'success' && (
-                  <div className="text-center text-slate-400 py-10 font-medium lg:text-lg">
-                    積木都拿完了！請點擊右下角檢查答案！
+              <div className="p-3 lg:p-5 flex-1 flex flex-col gap-3 lg:gap-4 min-h-[90px]">
+                {blocks.length === 0 ? (
+                  <div className="flex-1 flex items-center justify-center text-slate-400/80 font-medium border-2 border-dashed border-current rounded-xl lg:text-lg">
+                    將積木點擊或拖曳到這裡
                   </div>
+                ) : (
+                  blocks.map(block => (
+                    <BlockCard 
+                      key={block.id} 
+                      block={block} 
+                      isSelected={selectedBlockId === block.id}
+                      onDragStart={onDragStart}
+                      onClick={onBlockClick}
+                    />
+                  ))
                 )}
               </div>
             </div>
-            
-            {/* 提示區 */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 lg:p-5 text-amber-800 text-base lg:text-lg shadow-sm">
-              <p className="font-bold flex items-center gap-2 mb-2 text-lg lg:text-xl">
-                <AlertCircle className="w-6 h-6" /> 操作提示：
-              </p>
-              <ul className="list-disc pl-6 space-y-1.5 lg:space-y-2">
-                <li>【電腦】可以直接<strong>拖曳</strong>積木到右方的籃子裡。</li>
-                <li>【平板/電視】請先<strong>點擊</strong>積木，再<strong>點擊</strong>目標籃子。</li>
-              </ul>
-            </div>
-          </div>
+          );
+        }
 
-          {/* 右側：文章結構區 */}
-          <div className="xl:col-span-7 flex flex-col gap-4 lg:gap-6 relative">
-            
-            {/* 成功遮罩 */}
-            {gameState === 'success' && (
-              <div className="absolute inset-0 z-10 bg-white/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center animate-in fade-in duration-500">
-                <Trophy className="w-24 h-24 lg:w-32 lg:h-32 text-yellow-500 mb-4 drop-shadow-lg animate-bounce" />
-                <h2 className="text-3xl lg:text-5xl font-bold text-green-600 mb-3">太棒了！完全正確！</h2>
-                <p className="text-slate-600 text-lg lg:text-xl mb-8">你已經掌握了這篇議論文的結構！</p>
-                <button 
-                  onClick={() => initGame(currentTopicIdx)}
-                  className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold text-lg lg:text-xl flex items-center gap-3 shadow-lg transition-transform hover:scale-105"
-                >
-                  <RefreshCw className="w-6 h-6" /> 再挑戰一次
-                </button>
+        // 單一積木元件
+        function BlockCard({ block, isSelected, onDragStart, onClick }) {
+          let statusClasses = "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:shadow-md";
+          let icon = <GripIcon />;
+
+          if (isSelected) {
+            statusClasses = "border-indigo-500 bg-indigo-50 text-indigo-900 shadow-md ring-2 ring-indigo-200 scale-[1.02]";
+          } else if (block.status === 'correct') {
+            statusClasses = "border-green-500 bg-green-50 text-green-900 shadow-sm";
+            icon = <CheckIcon />;
+          } else if (block.status === 'wrong') {
+            statusClasses = "border-red-400 bg-red-50 text-red-900 shadow-sm animate-pulse";
+            icon = <XIcon />;
+          }
+
+          return (
+            <div
+              draggable
+              onDragStart={(e) => {
+                e.stopPropagation();
+                onDragStart(e, block.id);
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick(block.id);
+              }}
+              className={`p-3 md:p-4 lg:p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-start gap-3 lg:gap-4 select-none ${statusClasses}`}
+            >
+              <div className="mt-0.5 lg:mt-1">{icon}</div>
+              <div className="font-medium text-base lg:text-xl leading-relaxed flex-1">
+                {block.text}
               </div>
-            )}
-
-            {/* 論點區 */}
-            <DropZone 
-              title="第一段：我的論點 (主張)" 
-              category="argument"
-              description="這篇文章主要想表達的立場是什麼？"
-              colorClass="bg-blue-50 border-blue-200"
-              headerColorClass="bg-blue-500"
-              blocks={getZoneBlocks('argument')}
-              selectedBlockId={selectedBlockId}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              onClick={handleZoneClick}
-              onDragStart={handleDragStart}
-              onBlockClick={handleBlockClick}
-            />
-
-            {/* 證據區 */}
-            <DropZone 
-              title="第二段：證據 (理由與例子)" 
-              category="evidence"
-              description="有哪些理由或生活經驗可以支持你的觀點呢？(可放多個)"
-              colorClass="bg-emerald-50 border-emerald-200"
-              headerColorClass="bg-emerald-500"
-              blocks={getZoneBlocks('evidence')}
-              selectedBlockId={selectedBlockId}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              onClick={handleZoneClick}
-              onDragStart={handleDragStart}
-              onBlockClick={handleBlockClick}
-            />
-
-            {/* 結論區 */}
-            <DropZone 
-              title="第三段：結論 (總結)" 
-              category="conclusion"
-              description="最後一句話，總結你的看法並再次強調。"
-              colorClass="bg-orange-50 border-orange-200"
-              headerColorClass="bg-orange-500"
-              blocks={getZoneBlocks('conclusion')}
-              selectedBlockId={selectedBlockId}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              onClick={handleZoneClick}
-              onDragStart={handleDragStart}
-              onBlockClick={handleBlockClick}
-            />
-
-            {/* 操作按鈕與回饋 */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
-              <div className="flex-1">
-                {gameState === 'checking' && checkResult && (
-                  <div className="text-red-600 font-bold bg-red-100 px-4 py-3 rounded-xl inline-block animate-pulse text-base lg:text-lg">
-                    {checkResult}
-                  </div>
-                )}
-              </div>
-              <button 
-                onClick={checkAnswers}
-                disabled={gameState === 'success'}
-                className="w-full sm:w-auto px-8 lg:px-10 py-3 lg:py-4 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-lg lg:text-xl shadow-lg disabled:opacity-50 transition-all hover:-translate-y-1"
-              >
-                完成！檢查答案
-              </button>
             </div>
-            
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+          );
+        }
 
-// 可重複使用的拖曳區域元件
-function DropZone({ 
-  title, description, category, colorClass, headerColorClass, 
-  blocks, selectedBlockId, onDragOver, onDrop, onClick, 
-  onDragStart, onBlockClick 
-}) {
-  return (
-    <div 
-      className={`rounded-2xl border-2 overflow-hidden shadow-sm transition-colors min-h-[150px] lg:min-h-[180px] flex flex-col
-        ${colorClass}
-        ${selectedBlockId ? 'ring-4 ring-indigo-300 ring-opacity-50 cursor-pointer' : ''}
-      `}
-      onDragOver={onDragOver}
-      onDrop={(e) => onDrop(e, category)}
-      onClick={() => onClick(category)}
-    >
-      <div className={`${headerColorClass} text-white px-4 py-2 lg:px-6 lg:py-3 font-bold flex flex-col sm:flex-row sm:items-center sm:justify-between`}>
-        <span className="text-lg lg:text-xl">{title}</span>
-        <span className="text-sm lg:text-base opacity-90 font-normal mt-1 sm:mt-0">{description}</span>
-      </div>
-      <div className="p-3 lg:p-5 flex-1 flex flex-col gap-3 lg:gap-4 min-h-[90px]">
-        {blocks.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-slate-400/80 font-medium border-2 border-dashed border-current rounded-xl lg:text-lg">
-            將積木點擊或拖曳到這裡
-          </div>
-        ) : (
-          blocks.map(block => (
-            <BlockCard 
-              key={block.id} 
-              block={block} 
-              isSelected={selectedBlockId === block.id}
-              onDragStart={onDragStart}
-              onClick={onBlockClick}
-            />
-          ))
-        )}
-      </div>
-    </div>
-  );
-}
-
-// 單一積木元件
-function BlockCard({ block, isSelected, onDragStart, onClick }) {
-  let statusClasses = "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:shadow-md";
-  let icon = <GripVertical className="text-slate-400 w-5 h-5 lg:w-6 lg:h-6 flex-shrink-0 cursor-grab" />;
-
-  if (isSelected) {
-    statusClasses = "border-indigo-500 bg-indigo-50 text-indigo-900 shadow-md ring-2 ring-indigo-200 scale-[1.02]";
-  } else if (block.status === 'correct') {
-    statusClasses = "border-green-500 bg-green-50 text-green-900 shadow-sm";
-    icon = <CheckCircle className="text-green-500 w-5 h-5 lg:w-6 lg:h-6 flex-shrink-0" />;
-  } else if (block.status === 'wrong') {
-    statusClasses = "border-red-400 bg-red-50 text-red-900 shadow-sm animate-pulse";
-    icon = <XCircle className="text-red-500 w-5 h-5 lg:w-6 lg:h-6 flex-shrink-0" />;
-  }
-
-  return (
-    <div
-      draggable
-      onDragStart={(e) => {
-        e.stopPropagation();
-        onDragStart(e, block.id);
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick(block.id);
-      }}
-      className={`p-3 md:p-4 lg:p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-start gap-3 lg:gap-4 select-none ${statusClasses}`}
-    >
-      <div className="mt-0.5 lg:mt-1">{icon}</div>
-      <div className="font-medium text-base lg:text-xl leading-relaxed flex-1">
-        {block.text}
-      </div>
-    </div>
-  );
-}
+        // 啟動應用程式
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
