@@ -256,12 +256,18 @@
           const [selectedBlockId, setSelectedBlockId] = useState(null);
           const [gameState, setGameState] = useState('playing'); // playing, checking, success
           const [checkResult, setCheckResult] = useState(null);
+          
+          // 【新增】紀錄已完成的關卡與控制獎勵畫面
+          const [completedTopics, setCompletedTopics] = useState([]); 
+          const [showReward, setShowReward] = useState(false); 
+          const [timerId, setTimerId] = useState(null);
 
           // 取得目前選中的類別資料
           const activeCategory = CATEGORIES[currentCatKey];
 
           // 初始化遊戲
           const initGame = (catKey, topicIdx) => {
+            if (timerId) clearTimeout(timerId); // 清除舊的計時器
             const topic = CATEGORIES[catKey].topics[topicIdx];
             const initialBlocks = topic.items.map(item => ({
               ...item,
@@ -274,6 +280,7 @@
             setGameState('playing');
             setCheckResult(null);
             setSelectedBlockId(null);
+            setShowReward(false); // 重置獎勵畫面
           };
 
           // 初始載入
@@ -356,6 +363,24 @@
               setGameState('checking');
             } else if (allCorrect) {
               setGameState('success');
+              setShowReward(true);
+              setCheckResult(null);
+              
+              // 【新增】記錄已完成的關卡ID
+              setCompletedTopics(prev => {
+                const topicId = activeCategory.topics[currentTopicIdx].id;
+                if (!prev.includes(topicId)) {
+                  return [...prev, topicId];
+                }
+                return prev;
+              });
+
+              // 【新增】3秒後自動關閉獎勵畫面，讓老師可以檢討內容
+              const newTimerId = setTimeout(() => {
+                setShowReward(false);
+              }, 3000);
+              setTimerId(newTimerId);
+
             } else {
               setCheckResult('有些積木放錯位置了，紅色框框的需要換一下喔！');
               setGameState('checking');
@@ -408,16 +433,23 @@
                   <div className="flex flex-wrap justify-center gap-2 lg:gap-3">
                     {activeCategory.topics.map((topic, idx) => {
                       const isActive = currentTopicIdx === idx;
+                      const isCompleted = completedTopics.includes(topic.id); // 檢查是否已完成
+                      
+                      // 【新增】改變按鈕樣式，加入綠色完成標記
+                      let btnClass = `bg-white text-slate-600 border-slate-200 hover:bg-slate-50`;
+                      if (isActive) {
+                        btnClass = `${btnActiveColor} text-white shadow-md scale-105 border-transparent`;
+                      } else if (isCompleted) {
+                        btnClass = `bg-green-50 text-green-700 border-green-300 opacity-90`; 
+                      }
+
                       return (
                         <button
                           key={topic.id}
                           onClick={() => initGame(currentCatKey, idx)}
-                          className={`px-4 py-2 lg:px-5 lg:py-3 rounded-full font-bold text-sm md:text-base lg:text-lg transition-all duration-300 flex items-center gap-2 border-2
-                            ${isActive 
-                              ? `${btnActiveColor} text-white shadow-md scale-105 border-transparent` 
-                              : `bg-white text-slate-600 border-slate-200 hover:bg-slate-50`}`}
+                          className={`px-4 py-2 lg:px-5 lg:py-3 rounded-full font-bold text-sm md:text-base lg:text-lg transition-all duration-300 flex items-center gap-2 border-2 ${btnClass}`}
                         >
-                          <span className="text-lg lg:text-xl">{topic.icon}</span>
+                          <span className="text-lg lg:text-xl">{isCompleted && !isActive ? '✅' : topic.icon}</span>
                           {topic.title}
                         </button>
                       );
@@ -432,11 +464,11 @@
                   <div className="xl:col-span-5 flex flex-col gap-4 lg:gap-6">
                     <div 
                       className={`bg-white rounded-2xl p-4 lg:p-6 border-4 border-dashed min-h-[250px] transition-colors
-                        ${selectedBlockId ? borderHighlight : 'border-slate-300'}
+                        ${selectedBlockId && gameState !== 'success' ? borderHighlight : 'border-slate-300'}
                       `}
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, 'pool')}
-                      onClick={() => handleZoneClick('pool')}
+                      onDragOver={gameState !== 'success' ? handleDragOver : undefined}
+                      onDrop={gameState !== 'success' ? (e) => handleDrop(e, 'pool') : undefined}
+                      onClick={gameState !== 'success' ? () => handleZoneClick('pool') : undefined}
                     >
                       <div className="flex items-center gap-2 mb-4 text-slate-500 font-bold text-lg lg:text-xl">
                         <span className="text-2xl">💡</span>
@@ -477,20 +509,15 @@
                   {/* 右側：文章結構區 */}
                   <div className="xl:col-span-7 flex flex-col gap-4 lg:gap-6 relative">
                     
-                    {/* 成功遮罩 */}
-                    {gameState === 'success' && (
-                      <div className="absolute inset-0 z-10 bg-white/90 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center transition-all duration-500 shadow-xl border-4 border-green-400">
+                    {/* 成功遮罩 (改為3秒閃示後消失) */}
+                    {showReward && (
+                      <div className="absolute inset-0 z-20 bg-white/95 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center transition-all duration-500 shadow-xl border-4 border-green-400">
                         <div className="text-6xl lg:text-8xl mb-4 drop-shadow-lg animate-bounce">{activeCategory.mainIcon}</div>
                         <h2 className="text-3xl lg:text-5xl font-bold text-green-600 mb-3">太棒了！完全正確！</h2>
-                        <p className="text-slate-600 text-lg lg:text-xl mb-8">
+                        <p className="text-slate-600 text-lg lg:text-xl mb-2">
                             {currentCatKey === 'junior' ? '你是一個很棒的生活小達人！' : '你已經掌握了這篇議論文的結構！'}
                         </p>
-                        <button 
-                          onClick={() => initGame(currentCatKey, currentTopicIdx)}
-                          className={`px-8 py-4 ${btnActiveColor} text-white rounded-full font-bold text-lg lg:text-xl flex items-center gap-3 shadow-lg transition-transform hover:scale-105`}
-                        >
-                          <span className="text-2xl">🔄</span> 再玩一次
-                        </button>
+                        <p className="text-slate-400 text-sm animate-pulse">(畫面即將自動關閉，進入重點檢討)</p>
                       </div>
                     )}
 
@@ -504,6 +531,7 @@
                       blocks={getZoneBlocks('argument')}
                       selectedBlockId={selectedBlockId}
                       themeColor={activeCategory.themeColor}
+                      isLocked={gameState === 'success'}
                       onDragOver={handleDragOver}
                       onDrop={handleDrop}
                       onClick={handleZoneClick}
@@ -521,6 +549,7 @@
                       blocks={getZoneBlocks('evidence')}
                       selectedBlockId={selectedBlockId}
                       themeColor={activeCategory.themeColor}
+                      isLocked={gameState === 'success'}
                       onDragOver={handleDragOver}
                       onDrop={handleDrop}
                       onClick={handleZoneClick}
@@ -538,6 +567,7 @@
                       blocks={getZoneBlocks('conclusion')}
                       selectedBlockId={selectedBlockId}
                       themeColor={activeCategory.themeColor}
+                      isLocked={gameState === 'success'}
                       onDragOver={handleDragOver}
                       onDrop={handleDrop}
                       onClick={handleZoneClick}
@@ -554,13 +584,31 @@
                           </div>
                         )}
                       </div>
-                      <button 
-                        onClick={checkAnswers}
-                        disabled={gameState === 'success'}
-                        className="w-full sm:w-auto px-8 lg:px-10 py-3 lg:py-4 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-lg lg:text-xl shadow-lg disabled:opacity-50 transition-all hover:-translate-y-1"
-                      >
-                        排好了！檢查答案
-                      </button>
+                      
+                      {/* 【新增】過關後按鈕變更為「重新挑戰」與「下一關」 */}
+                      {gameState !== 'success' ? (
+                        <button 
+                          onClick={checkAnswers}
+                          className="w-full sm:w-auto px-8 lg:px-10 py-3 lg:py-4 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-lg lg:text-xl shadow-lg transition-all hover:-translate-y-1"
+                        >
+                          排好了！檢查答案
+                        </button>
+                      ) : (
+                        <div className="flex gap-3 w-full sm:w-auto">
+                          <button 
+                            onClick={() => initGame(currentCatKey, currentTopicIdx)}
+                            className="flex-1 sm:flex-none px-6 py-3 lg:py-4 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold text-lg shadow-sm transition-all"
+                          >
+                            🔄 重新挑戰
+                          </button>
+                          <button 
+                            onClick={() => initGame(currentCatKey, (currentTopicIdx + 1) % 9)}
+                            className={`flex-1 sm:flex-none px-6 py-3 lg:py-4 ${btnActiveColor} text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:-translate-y-1`}
+                          >
+                            下一關 ➡️
+                          </button>
+                        </div>
+                      )}
                     </div>
                     
                   </div>
@@ -573,7 +621,7 @@
         // 可重複使用的拖曳區域元件
         function DropZone({ 
           title, description, category, colorClass, headerColorClass, 
-          blocks, selectedBlockId, themeColor, onDragOver, onDrop, onClick, 
+          blocks, selectedBlockId, themeColor, isLocked, onDragOver, onDrop, onClick, 
           onDragStart, onBlockClick 
         }) {
           const ringColor = themeColor === 'orange' ? 'ring-orange-300' : 'ring-indigo-300';
@@ -581,11 +629,11 @@
             <div 
               className={`rounded-2xl border-2 overflow-hidden shadow-sm transition-colors min-h-[150px] lg:min-h-[180px] flex flex-col
                 ${colorClass}
-                ${selectedBlockId ? `ring-4 ${ringColor} ring-opacity-50 cursor-pointer` : ''}
+                ${selectedBlockId && !isLocked ? `ring-4 ${ringColor} ring-opacity-50 cursor-pointer` : ''}
               `}
-              onDragOver={onDragOver}
-              onDrop={(e) => onDrop(e, category)}
-              onClick={() => onClick(category)}
+              onDragOver={!isLocked ? onDragOver : undefined}
+              onDrop={!isLocked ? (e) => onDrop(e, category) : undefined}
+              onClick={!isLocked ? () => onClick(category) : undefined}
             >
               <div className={`${headerColorClass} text-white px-4 py-2 lg:px-6 lg:py-3 font-bold flex flex-col sm:flex-row sm:items-center sm:justify-between`}>
                 <span className="text-lg lg:text-2xl tracking-wide">{title}</span>
@@ -603,6 +651,7 @@
                       block={block} 
                       isSelected={selectedBlockId === block.id}
                       themeColor={themeColor}
+                      isLocked={isLocked}
                       onDragStart={onDragStart}
                       onClick={onBlockClick}
                     />
@@ -614,14 +663,17 @@
         }
 
         // 單一積木元件
-        function BlockCard({ block, isSelected, themeColor, onDragStart, onClick }) {
-          let statusClasses = "border-slate-300 bg-white text-slate-800 hover:shadow-md";
-          // 根據不同主題顏色設定 hover 邊框
-          statusClasses += themeColor === 'orange' ? ' hover:border-orange-400' : ' hover:border-indigo-400';
+        function BlockCard({ block, isSelected, themeColor, isLocked, onDragStart, onClick }) {
+          let statusClasses = "border-slate-300 bg-white text-slate-800";
+          
+          if (!isLocked) {
+              statusClasses += " hover:shadow-md";
+              statusClasses += themeColor === 'orange' ? ' hover:border-orange-400' : ' hover:border-indigo-400';
+          }
           
           let icon = <GripIcon />;
 
-          if (isSelected) {
+          if (isSelected && !isLocked) {
             if (themeColor === 'orange') {
                 statusClasses = "border-orange-500 bg-orange-50 text-orange-900 shadow-md ring-2 ring-orange-200 scale-[1.02]";
             } else {
@@ -637,16 +689,16 @@
 
           return (
             <div
-              draggable
-              onDragStart={(e) => {
+              draggable={!isLocked}
+              onDragStart={!isLocked ? (e) => {
                 e.stopPropagation();
                 onDragStart(e, block.id);
-              }}
-              onClick={(e) => {
+              } : undefined}
+              onClick={!isLocked ? (e) => {
                 e.stopPropagation();
                 onClick(block.id);
-              }}
-              className={`p-3 md:p-4 lg:p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-center gap-3 lg:gap-4 select-none ${statusClasses}`}
+              } : undefined}
+              className={`p-3 md:p-4 lg:p-5 rounded-xl border-2 ${!isLocked ? 'cursor-pointer' : 'cursor-default'} transition-all duration-200 flex items-center gap-3 lg:gap-4 select-none ${statusClasses}`}
             >
               <div className="mt-0.5 lg:mt-0 flex-shrink-0">{icon}</div>
               <div className="font-bold text-lg lg:text-2xl leading-snug flex-1 tracking-wide">
