@@ -22,12 +22,17 @@
 
     <!-- 遊戲的主程式邏輯 -->
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
         // 自訂圖示
         const GripIcon = () => <svg className="w-5 h-5 lg:w-6 lg:h-6 flex-shrink-0 text-slate-400 cursor-grab" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9h8M8 15h8"></path></svg>;
         const CheckIcon = () => <svg className="w-5 h-5 lg:w-6 lg:h-6 flex-shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>;
         const XIcon = () => <svg className="w-5 h-5 lg:w-6 lg:h-6 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>;
+        
+        // 畫筆工具圖示
+        const PenIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>;
+        const TrashIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>;
+        const CloseIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>;
 
         // 整合三大類別的資料庫
         const CATEGORIES = {
@@ -312,8 +317,102 @@
           return newArray;
         };
 
+        // ===== 畫筆塗鴉層元件 =====
+        function DrawingOverlay({ isEnabled, color, lineWidth, onClear }) {
+          const canvasRef = useRef(null);
+          const [isDrawing, setIsDrawing] = useState(false);
+          const [ctx, setCtx] = useState(null);
+
+          // 初始化畫布與處理視窗縮放
+          useEffect(() => {
+            const canvas = canvasRef.current;
+            const resizeCanvas = () => {
+              const tempCanvas = document.createElement('canvas');
+              const tempCtx = tempCanvas.getContext('2d');
+              tempCanvas.width = canvas.width;
+              tempCanvas.height = canvas.height;
+              tempCtx.drawImage(canvas, 0, 0);
+
+              canvas.width = window.innerWidth;
+              canvas.height = window.innerHeight;
+
+              const context = canvas.getContext('2d');
+              context.lineCap = 'round';
+              context.lineJoin = 'round';
+              context.drawImage(tempCanvas, 0, 0);
+              setCtx(context);
+            };
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const context = canvas.getContext('2d');
+            context.lineCap = 'round';
+            context.lineJoin = 'round';
+            setCtx(context);
+
+            window.addEventListener('resize', resizeCanvas);
+            return () => window.removeEventListener('resize', resizeCanvas);
+          }, []);
+
+          // 綁定外部清除功能
+          useEffect(() => {
+            if (onClear) {
+              onClear.current = () => {
+                if (ctx && canvasRef.current) {
+                  ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                }
+              };
+            }
+          }, [ctx, onClear]);
+
+          const getCoordinates = (e) => {
+            if (e.touches && e.touches.length > 0) {
+              return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+            return { x: e.clientX, y: e.clientY };
+          };
+
+          const startDrawing = (e) => {
+            if (!isEnabled) return;
+            const { x, y } = getCoordinates(e);
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            setIsDrawing(true);
+          };
+
+          const draw = (e) => {
+            if (!isDrawing || !isEnabled) return;
+            const { x, y } = getCoordinates(e);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+          };
+
+          const stopDrawing = () => {
+            if (!isDrawing || !isEnabled) return;
+            ctx.closePath();
+            setIsDrawing(false);
+          };
+
+          return (
+            <canvas
+              ref={canvasRef}
+              className={`fixed inset-0 z-[50] ${isEnabled ? 'cursor-crosshair pointer-events-auto touch-none' : 'pointer-events-none'}`}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseOut={stopDrawing}
+              onTouchStart={startDrawing}
+              onTouchMove={draw}
+              onTouchEnd={stopDrawing}
+            />
+          );
+        }
+
+        // ===== 主應用程式 =====
         function App() {
-          const [currentCatKey, setCurrentCatKey] = useState('social'); // 預設改為最左邊的 'social' (禮貌小天使)
+          const [currentCatKey, setCurrentCatKey] = useState('social'); // 預設改為最左邊的 'social'
           const [currentTopicIdx, setCurrentTopicIdx] = useState(0);
           const [blocks, setBlocks] = useState([]);
           const [selectedBlockId, setSelectedBlockId] = useState(null);
@@ -324,6 +423,12 @@
           const [completedTopics, setCompletedTopics] = useState([]); 
           const [showReward, setShowReward] = useState(false); 
           const [timerId, setTimerId] = useState(null);
+
+          // 畫筆控制狀態
+          const [isDrawMode, setIsDrawMode] = useState(false);
+          const [penColor, setPenColor] = useState('#ef4444'); // 預設紅色
+          const [penWidth, setPenWidth] = useState(4);
+          const clearCanvasRef = useRef(null);
 
           // 取得目前選中的類別資料
           const activeCategory = CATEGORIES[currentCatKey];
@@ -348,7 +453,7 @@
 
           // 初始載入
           useEffect(() => {
-            initGame('social', 0); // 初始載入也改為 'social'
+            initGame('social', 0); 
           }, []);
 
           // 切換大類別
@@ -473,11 +578,20 @@
               : 'border-indigo-400 bg-indigo-50/30';
 
           return (
-            <div className="min-h-screen p-4 md:p-6 lg:p-8">
+            <div className="min-h-screen p-4 md:p-6 lg:p-8 relative">
+              
+              {/* 畫筆塗鴉層 (放在背景之上，UI控制鈕之下) */}
+              <DrawingOverlay 
+                  isEnabled={isDrawMode} 
+                  color={penColor} 
+                  lineWidth={penWidth} 
+                  onClear={clearCanvasRef} 
+              />
+
               <div className="max-w-7xl mx-auto">
                 
-                {/* 頂部：三大模式切換按鈕 (調整順序：禮貌 -> 生活 -> 辯論) */}
-                <div className="flex flex-wrap justify-center gap-3 lg:gap-6 mb-8">
+                {/* 頂部：三大模式切換按鈕 */}
+                <div className="flex flex-wrap justify-center gap-3 lg:gap-6 mb-8 relative z-10">
                     <button 
                         onClick={() => handleCategorySwitch('social')}
                         className={`px-4 py-2 lg:px-6 lg:py-3 rounded-2xl font-bold text-base lg:text-xl shadow-lg transition-all duration-300 flex items-center gap-2 border-4
@@ -510,7 +624,7 @@
                 </div>
 
                 {/* 標題與目前類別的主題選擇 */}
-                <header className="mb-6 lg:mb-10 text-center bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <header className="mb-6 lg:mb-10 text-center bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative z-10">
                   <h1 className={`text-3xl md:text-4xl lg:text-5xl font-bold flex items-center justify-center gap-3 mb-6 ${titleColor}`}>
                     <span className="text-3xl lg:text-5xl">{activeCategory.mainIcon}</span>
                     {activeCategory.mainTitle}
@@ -545,7 +659,7 @@
                 </header>
 
                 {/* 遊戲主要版面 */}
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 relative z-10">
                   
                   {/* 左側/上方：積木池 */}
                   <div className="xl:col-span-5 flex flex-col gap-4 lg:gap-6">
@@ -597,7 +711,7 @@
                   {/* 右側：文章結構區 */}
                   <div className="xl:col-span-7 flex flex-col gap-4 lg:gap-6 relative">
                     
-                    {/* 成功遮罩 (改為3秒閃示後消失) */}
+                    {/* 成功遮罩 (3秒閃示後消失) */}
                     {showReward && (
                       <div className="absolute inset-0 z-20 bg-white/95 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center transition-all duration-500 shadow-xl border-4 border-green-400">
                         <div className="text-6xl lg:text-8xl mb-4 drop-shadow-lg animate-bounce">{activeCategory.mainIcon}</div>
@@ -682,7 +796,7 @@
                           排好了！檢查答案
                         </button>
                       ) : (
-                        <div className="flex gap-3 w-full sm:w-auto">
+                        <div className="flex gap-3 w-full sm:w-auto relative z-10">
                           <button 
                             onClick={() => initGame(currentCatKey, currentTopicIdx)}
                             className="flex-1 sm:flex-none px-6 py-3 lg:py-4 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold text-lg shadow-sm transition-all"
@@ -702,6 +816,49 @@
                   </div>
                 </div>
               </div>
+
+              {/* 畫筆控制工具列 (固定在右下角) */}
+              <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-3">
+                  {isDrawMode && (
+                      <div className="bg-white p-4 rounded-2xl shadow-2xl border-2 border-slate-200 flex flex-col gap-4">
+                          <div className="flex gap-2">
+                              {['#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#1e293b'].map(c => (
+                                  <button
+                                      key={c}
+                                      onClick={() => setPenColor(c)}
+                                      className={`w-8 h-8 rounded-full border-2 ${penColor === c ? 'border-slate-800 scale-125' : 'border-transparent shadow-sm'}`}
+                                      style={{ backgroundColor: c }}
+                                  />
+                              ))}
+                          </div>
+                          <div className="flex items-center justify-between gap-3 border-t pt-3">
+                              <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold text-slate-500">粗細</span>
+                                  <input
+                                      type="range"
+                                      min="2" max="16"
+                                      value={penWidth}
+                                      onChange={e => setPenWidth(Number(e.target.value))}
+                                      className="w-20"
+                                  />
+                              </div>
+                              <button
+                                  onClick={() => clearCanvasRef.current && clearCanvasRef.current()}
+                                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                              >
+                                  <TrashIcon /> 清除
+                              </button>
+                          </div>
+                      </div>
+                  )}
+                  <button
+                      onClick={() => setIsDrawMode(!isDrawMode)}
+                      className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold text-lg shadow-xl transition-all ${isDrawMode ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-yellow-400 text-slate-800 hover:bg-yellow-300 border-2 border-yellow-500'}`}
+                  >
+                      {isDrawMode ? <><CloseIcon /> 關閉畫筆</> : <><PenIcon /> 開啟畫筆</>}
+                  </button>
+              </div>
+
             </div>
           );
         }
@@ -715,7 +872,7 @@
           const ringColor = themeColor === 'orange' ? 'ring-orange-300' : themeColor === 'teal' ? 'ring-teal-300' : 'ring-indigo-300';
           return (
             <div 
-              className={`rounded-2xl border-2 overflow-hidden shadow-sm transition-colors min-h-[150px] lg:min-h-[180px] flex flex-col
+              className={`rounded-2xl border-2 overflow-hidden shadow-sm transition-colors min-h-[150px] lg:min-h-[180px] flex flex-col relative z-10
                 ${colorClass}
                 ${selectedBlockId && !isLocked ? `ring-4 ${ringColor} ring-opacity-50 cursor-pointer` : ''}
               `}
@@ -788,7 +945,7 @@
                 e.stopPropagation();
                 onClick(block.id);
               } : undefined}
-              className={`p-3 md:p-4 lg:p-5 rounded-xl border-2 ${!isLocked ? 'cursor-pointer' : 'cursor-default'} transition-all duration-200 flex items-center gap-3 lg:gap-4 select-none ${statusClasses}`}
+              className={`p-3 md:p-4 lg:p-5 rounded-xl border-2 ${!isLocked ? 'cursor-pointer' : 'cursor-default'} transition-all duration-200 flex items-center gap-3 lg:gap-4 select-none ${statusClasses} relative z-10`}
             >
               <div className="mt-0.5 lg:mt-0 flex-shrink-0">{icon}</div>
               <div className="font-bold text-lg lg:text-2xl leading-snug flex-1 tracking-wide">
