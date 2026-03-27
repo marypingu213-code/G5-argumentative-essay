@@ -410,11 +410,12 @@
               <!-- 削開的木頭部分 -->
               <polygon points="1,31 5,19 13,27" fill="#FFE4C4" />
               <!-- 變色的筆尖 (動態顏色) -->
-              <polygon points="1,31 2.33,27 5,29.66" fill="${encodeURIComponent(color)}" />
+              <polygon points="1,31 2.33,27 5,29.66" fill="${color}" />
             </g>
           </svg>`;
           // 設定游標圖片，並將點擊感應區 (hotspot) 精準對齊筆尖左下角 (1, 31)
-          const cursorUrl = `url("data:image/svg+xml,${cursorSvg}") 1 31, crosshair`;
+          // 修正：必須將整段 SVG 進行 encodeURIComponent 編碼，瀏覽器才能正確顯示圖案
+          const cursorUrl = `url("data:image/svg+xml,${encodeURIComponent(cursorSvg)}") 1 31, crosshair`;
 
           return (
             <canvas
