@@ -29,7 +29,7 @@
         const CheckIcon = () => <svg className="w-5 h-5 lg:w-6 lg:h-6 flex-shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>;
         const XIcon = () => <svg className="w-5 h-5 lg:w-6 lg:h-6 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>;
 
-        // 整合兩大類別的資料庫
+        // 整合三大類別的資料庫
         const CATEGORIES = {
             junior: {
                 id: 'junior',
@@ -130,6 +130,69 @@
                             { id: 'r3', text: '跑太快可能會撞到別人，兩個人都會受傷。', type: 'evidence' },
                             { id: 'r4', text: '教室外面需要保持安靜，才不會吵到別班。', type: 'evidence' },
                             { id: 'r5', text: '所以，為了安全，我們在走廊只能慢慢走。', type: 'conclusion' }
+                        ]
+                    }
+                ]
+            },
+            social: {
+                id: 'social',
+                mainTitle: '禮貌小天使：人際與規矩',
+                mainIcon: '👼',
+                themeColor: 'teal',
+                labels: {
+                    argument: { title: '第一段：我的想法 (主張)', desc: '告訴大家，我覺得應該怎麼做？' },
+                    evidence: { title: '第二段：原因 (理由)', desc: '為什麼要這樣做呢？ (可以放好幾個原因)' },
+                    conclusion: { title: '第三段：最後的話 (結論)', desc: '最後提醒自己和大家一句話！' }
+                },
+                topics: [
+                    {
+                        id: 'touch', icon: '🙅‍♂️', title: '可以隨便碰同學身體嗎？',
+                        items: [
+                            { id: 'to1', text: '我覺得不可以隨便碰同學的身體。', type: 'argument' },
+                            { id: 'to2', text: '每個人的身體都是自己的，不想被亂摸。', type: 'evidence' },
+                            { id: 'to3', text: '突然摸別人或抱別人，會讓同學嚇一跳。', type: 'evidence' },
+                            { id: 'to4', text: '如果真的想找同學，應該用嘴巴叫他的名字。', type: 'evidence' },
+                            { id: 'to5', text: '所以，我們要尊重別人，手腳不亂碰。', type: 'conclusion' }
+                        ]
+                    },
+                    {
+                        id: 'draw_book', icon: '📖', title: '可以亂畫同學的課本嗎？',
+                        items: [
+                            { id: 'db1', text: '我覺得絕對不可以亂畫同學的課本。', type: 'argument' },
+                            { id: 'db2', text: '課本是同學的東西，不是我自己的。', type: 'evidence' },
+                            { id: 'db3', text: '亂畫別人的東西，同學會非常生氣和難過。', type: 'evidence' },
+                            { id: 'db4', text: '如果想畫畫，應該拿自己的畫畫紙出來畫。', type: 'evidence' },
+                            { id: 'db5', text: '所以，我們要愛護別人的物品，不能亂畫。', type: 'conclusion' }
+                        ]
+                    },
+                    {
+                        id: 'elevator', icon: '🛗', title: '搭電梯時可以一直按嗎？',
+                        items: [
+                            { id: 'el1', text: '我覺得搭電梯時，不可以一直亂按按鈕。', type: 'argument' },
+                            { id: 'el2', text: '電梯是大家都要用的，亂按會影響別人。', type: 'evidence' },
+                            { id: 'el3', text: '一直玩門或按鈕，電梯可能會壞掉把我們關在裡面。', type: 'evidence' },
+                            { id: 'el4', text: '我們只需要按自己要去的樓層就好。', type: 'evidence' },
+                            { id: 'el5', text: '所以，搭電梯要乖乖站好，不亂玩按鈕。', type: 'conclusion' }
+                        ]
+                    },
+                    {
+                        id: 'clap', icon: '👏', title: '上課時可以突然拍手嗎？',
+                        items: [
+                            { id: 'cl1', text: '我覺得上課的時候，不可以突然一直拍手。', type: 'argument' },
+                            { id: 'cl2', text: '上課時需要保持安靜，老師才能好好講課。', type: 'evidence' },
+                            { id: 'cl3', text: '突然發出很大聲的聲音，會嚇到旁邊的同學。', type: 'evidence' },
+                            { id: 'cl4', text: '如果想拍手或發出聲音，要等下課去操場再做。', type: 'evidence' },
+                            { id: 'cl5', text: '所以，上課要安靜聽講，不亂發出聲音。', type: 'conclusion' }
+                        ]
+                    },
+                    {
+                        id: 'distance', icon: '🧍‍♂️', title: '講話時可以靠同學太近嗎？',
+                        items: [
+                            { id: 'di1', text: '我覺得跟同學講話時，臉和身體不能靠太近。', type: 'argument' },
+                            { id: 'di2', text: '靠得太近，同學會覺得很不舒服、想後退。', type: 'evidence' },
+                            { id: 'di3', text: '講話的時候，可能會不小心把口水噴到別人臉上。', type: 'evidence' },
+                            { id: 'di4', text: '我們應該跟別人保持一個手臂長度的距離。', type: 'evidence' },
+                            { id: 'di5', text: '所以，講話要保持距離，大家才會覺得輕鬆。', type: 'conclusion' }
                         ]
                     }
                 ]
@@ -250,14 +313,14 @@
         };
 
         function App() {
-          const [currentCatKey, setCurrentCatKey] = useState('junior'); // 'junior' 或 'senior'
+          const [currentCatKey, setCurrentCatKey] = useState('junior'); // 'junior', 'social' 或 'senior'
           const [currentTopicIdx, setCurrentTopicIdx] = useState(0);
           const [blocks, setBlocks] = useState([]);
           const [selectedBlockId, setSelectedBlockId] = useState(null);
           const [gameState, setGameState] = useState('playing'); // playing, checking, success
           const [checkResult, setCheckResult] = useState(null);
           
-          // 【新增】紀錄已完成的關卡與控制獎勵畫面
+          // 紀錄已完成的關卡與控制獎勵畫面
           const [completedTopics, setCompletedTopics] = useState([]); 
           const [showReward, setShowReward] = useState(false); 
           const [timerId, setTimerId] = useState(null);
@@ -366,7 +429,7 @@
               setShowReward(true);
               setCheckResult(null);
               
-              // 【新增】記錄已完成的關卡ID
+              // 記錄已完成的關卡ID
               setCompletedTopics(prev => {
                 const topicId = activeCategory.topics[currentTopicIdx].id;
                 if (!prev.includes(topicId)) {
@@ -375,7 +438,7 @@
                 return prev;
               });
 
-              // 【新增】3秒後自動關閉獎勵畫面，讓老師可以檢討內容
+              // 3秒後自動關閉獎勵畫面，讓老師可以檢討內容
               const newTimerId = setTimeout(() => {
                 setShowReward(false);
               }, 3000);
@@ -391,38 +454,62 @@
           const getZoneBlocks = (category) => blocks.filter(b => b.category === category);
 
           // 決定主題顏色的 Tailwind Class
-          const btnActiveColor = activeCategory.themeColor === 'orange' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-indigo-600 hover:bg-indigo-700';
-          const titleColor = activeCategory.themeColor === 'orange' ? 'text-orange-600' : 'text-indigo-700';
-          const borderHighlight = activeCategory.themeColor === 'orange' ? 'border-orange-400 bg-orange-50/30' : 'border-indigo-400 bg-indigo-50/30';
+          const btnActiveColor = activeCategory.themeColor === 'orange' 
+            ? 'bg-orange-500 hover:bg-orange-600' 
+            : activeCategory.themeColor === 'teal' 
+              ? 'bg-teal-500 hover:bg-teal-600' 
+              : 'bg-indigo-600 hover:bg-indigo-700';
+              
+          const titleColor = activeCategory.themeColor === 'orange' 
+            ? 'text-orange-600' 
+            : activeCategory.themeColor === 'teal'
+              ? 'text-teal-600'
+              : 'text-indigo-700';
+              
+          const borderHighlight = activeCategory.themeColor === 'orange' 
+            ? 'border-orange-400 bg-orange-50/30' 
+            : activeCategory.themeColor === 'teal'
+              ? 'border-teal-400 bg-teal-50/30'
+              : 'border-indigo-400 bg-indigo-50/30';
 
           return (
             <div className="min-h-screen p-4 md:p-6 lg:p-8">
               <div className="max-w-7xl mx-auto">
                 
-                {/* 頂部：大模式切換按鈕 */}
-                <div className="flex justify-center gap-4 lg:gap-8 mb-8">
+                {/* 頂部：三大模式切換按鈕 */}
+                <div className="flex flex-wrap justify-center gap-3 lg:gap-6 mb-8">
                     <button 
                         onClick={() => handleCategorySwitch('junior')}
-                        className={`px-6 py-3 lg:px-10 lg:py-4 rounded-2xl font-bold text-lg lg:text-2xl shadow-lg transition-all duration-300 flex items-center gap-3 border-4
+                        className={`px-4 py-2 lg:px-6 lg:py-3 rounded-2xl font-bold text-base lg:text-xl shadow-lg transition-all duration-300 flex items-center gap-2 border-4
                             ${currentCatKey === 'junior' 
                             ? 'bg-orange-500 text-white border-orange-600 scale-105' 
                             : 'bg-white text-orange-600 border-orange-200 hover:bg-orange-50'}`}
                     >
-                        <span className="text-2xl lg:text-3xl">🌟</span> 生活小達人 <span className="text-sm lg:text-base font-normal">(中低年級)</span>
+                        <span className="text-xl lg:text-2xl">🌟</span> 生活小達人 <span className="text-xs lg:text-sm font-normal">(中低年級)</span>
                     </button>
                     
                     <button 
+                        onClick={() => handleCategorySwitch('social')}
+                        className={`px-4 py-2 lg:px-6 lg:py-3 rounded-2xl font-bold text-base lg:text-xl shadow-lg transition-all duration-300 flex items-center gap-2 border-4
+                            ${currentCatKey === 'social' 
+                            ? 'bg-teal-500 text-white border-teal-600 scale-105' 
+                            : 'bg-white text-teal-600 border-teal-200 hover:bg-teal-50'}`}
+                    >
+                        <span className="text-xl lg:text-2xl">👼</span> 禮貌小天使 <span className="text-xs lg:text-sm font-normal">(人際規矩)</span>
+                    </button>
+
+                    <button 
                         onClick={() => handleCategorySwitch('senior')}
-                        className={`px-6 py-3 lg:px-10 lg:py-4 rounded-2xl font-bold text-lg lg:text-2xl shadow-lg transition-all duration-300 flex items-center gap-3 border-4
+                        className={`px-4 py-2 lg:px-6 lg:py-3 rounded-2xl font-bold text-base lg:text-xl shadow-lg transition-all duration-300 flex items-center gap-2 border-4
                             ${currentCatKey === 'senior' 
                             ? 'bg-indigo-600 text-white border-indigo-700 scale-105' 
                             : 'bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50'}`}
                     >
-                        <span className="text-2xl lg:text-3xl">🏆</span> 小小辯論家 <span className="text-sm lg:text-base font-normal">(高年級)</span>
+                        <span className="text-xl lg:text-2xl">🏆</span> 小小辯論家 <span className="text-xs lg:text-sm font-normal">(高年級)</span>
                     </button>
                 </div>
 
-                {/* 標題與目前類別的 9 個主題選擇 */}
+                {/* 標題與目前類別的主題選擇 */}
                 <header className="mb-6 lg:mb-10 text-center bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                   <h1 className={`text-3xl md:text-4xl lg:text-5xl font-bold flex items-center justify-center gap-3 mb-6 ${titleColor}`}>
                     <span className="text-3xl lg:text-5xl">{activeCategory.mainIcon}</span>
@@ -435,7 +522,7 @@
                       const isActive = currentTopicIdx === idx;
                       const isCompleted = completedTopics.includes(topic.id); // 檢查是否已完成
                       
-                      // 【新增】改變按鈕樣式，加入綠色完成標記
+                      // 改變按鈕樣式，加入綠色完成標記
                       let btnClass = `bg-white text-slate-600 border-slate-200 hover:bg-slate-50`;
                       if (isActive) {
                         btnClass = `${btnActiveColor} text-white shadow-md scale-105 border-transparent`;
@@ -482,6 +569,7 @@
                             block={block} 
                             isSelected={selectedBlockId === block.id}
                             themeColor={activeCategory.themeColor}
+                            isLocked={gameState === 'success'}
                             onDragStart={handleDragStart}
                             onClick={handleBlockClick}
                           />
@@ -515,7 +603,7 @@
                         <div className="text-6xl lg:text-8xl mb-4 drop-shadow-lg animate-bounce">{activeCategory.mainIcon}</div>
                         <h2 className="text-3xl lg:text-5xl font-bold text-green-600 mb-3">太棒了！完全正確！</h2>
                         <p className="text-slate-600 text-lg lg:text-xl mb-2">
-                            {currentCatKey === 'junior' ? '你是一個很棒的生活小達人！' : '你已經掌握了這篇議論文的結構！'}
+                            {currentCatKey === 'junior' ? '你是一個很棒的生活小達人！' : currentCatKey === 'social' ? '你是一個超有禮貌的小天使！' : '你已經掌握了這篇議論文的結構！'}
                         </p>
                         <p className="text-slate-400 text-sm animate-pulse">(畫面即將自動關閉，進入重點檢討)</p>
                       </div>
@@ -585,7 +673,7 @@
                         )}
                       </div>
                       
-                      {/* 【新增】過關後按鈕變更為「重新挑戰」與「下一關」 */}
+                      {/* 過關後按鈕變更為「重新挑戰」與「下一關」 */}
                       {gameState !== 'success' ? (
                         <button 
                           onClick={checkAnswers}
@@ -602,7 +690,7 @@
                             🔄 重新挑戰
                           </button>
                           <button 
-                            onClick={() => initGame(currentCatKey, (currentTopicIdx + 1) % 9)}
+                            onClick={() => initGame(currentCatKey, (currentTopicIdx + 1) % activeCategory.topics.length)}
                             className={`flex-1 sm:flex-none px-6 py-3 lg:py-4 ${btnActiveColor} text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:-translate-y-1`}
                           >
                             下一關 ➡️
@@ -624,7 +712,7 @@
           blocks, selectedBlockId, themeColor, isLocked, onDragOver, onDrop, onClick, 
           onDragStart, onBlockClick 
         }) {
-          const ringColor = themeColor === 'orange' ? 'ring-orange-300' : 'ring-indigo-300';
+          const ringColor = themeColor === 'orange' ? 'ring-orange-300' : themeColor === 'teal' ? 'ring-teal-300' : 'ring-indigo-300';
           return (
             <div 
               className={`rounded-2xl border-2 overflow-hidden shadow-sm transition-colors min-h-[150px] lg:min-h-[180px] flex flex-col
@@ -668,7 +756,7 @@
           
           if (!isLocked) {
               statusClasses += " hover:shadow-md";
-              statusClasses += themeColor === 'orange' ? ' hover:border-orange-400' : ' hover:border-indigo-400';
+              statusClasses += themeColor === 'orange' ? ' hover:border-orange-400' : themeColor === 'teal' ? ' hover:border-teal-400' : ' hover:border-indigo-400';
           }
           
           let icon = <GripIcon />;
@@ -676,6 +764,8 @@
           if (isSelected && !isLocked) {
             if (themeColor === 'orange') {
                 statusClasses = "border-orange-500 bg-orange-50 text-orange-900 shadow-md ring-2 ring-orange-200 scale-[1.02]";
+            } else if (themeColor === 'teal') {
+                statusClasses = "border-teal-500 bg-teal-50 text-teal-900 shadow-md ring-2 ring-teal-200 scale-[1.02]";
             } else {
                 statusClasses = "border-indigo-500 bg-indigo-50 text-indigo-900 shadow-md ring-2 ring-indigo-200 scale-[1.02]";
             }
