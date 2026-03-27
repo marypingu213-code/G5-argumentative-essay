@@ -395,10 +395,16 @@
             setIsDrawing(false);
           };
 
+          // 【新增】建立自訂的筆形游標 SVG，並讓它的顏色隨著選取的畫筆顏色改變
+          const cursorSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`;
+          // 設定游標圖片，並將筆尖精準對齊滑鼠熱點 (2, 22)
+          const cursorUrl = `url("data:image/svg+xml,${encodeURIComponent(cursorSvg)}") 2 22, crosshair`;
+
           return (
             <canvas
               ref={canvasRef}
-              className={`fixed inset-0 z-[50] ${isEnabled ? 'cursor-crosshair pointer-events-auto touch-none' : 'pointer-events-none'}`}
+              className={`fixed inset-0 z-[50] ${isEnabled ? 'pointer-events-auto touch-none' : 'pointer-events-none'}`}
+              style={{ cursor: isEnabled ? cursorUrl : 'auto' }}
               onMouseDown={startDrawing}
               onMouseMove={draw}
               onMouseUp={stopDrawing}
