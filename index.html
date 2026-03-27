@@ -313,7 +313,7 @@
         };
 
         function App() {
-          const [currentCatKey, setCurrentCatKey] = useState('junior'); // 'junior', 'social' 或 'senior'
+          const [currentCatKey, setCurrentCatKey] = useState('social'); // 預設改為最左邊的 'social' (禮貌小天使)
           const [currentTopicIdx, setCurrentTopicIdx] = useState(0);
           const [blocks, setBlocks] = useState([]);
           const [selectedBlockId, setSelectedBlockId] = useState(null);
@@ -348,7 +348,7 @@
 
           // 初始載入
           useEffect(() => {
-            initGame('junior', 0);
+            initGame('social', 0); // 初始載入也改為 'social'
           }, []);
 
           // 切換大類別
@@ -476,18 +476,8 @@
             <div className="min-h-screen p-4 md:p-6 lg:p-8">
               <div className="max-w-7xl mx-auto">
                 
-                {/* 頂部：三大模式切換按鈕 */}
+                {/* 頂部：三大模式切換按鈕 (調整順序：禮貌 -> 生活 -> 辯論) */}
                 <div className="flex flex-wrap justify-center gap-3 lg:gap-6 mb-8">
-                    <button 
-                        onClick={() => handleCategorySwitch('junior')}
-                        className={`px-4 py-2 lg:px-6 lg:py-3 rounded-2xl font-bold text-base lg:text-xl shadow-lg transition-all duration-300 flex items-center gap-2 border-4
-                            ${currentCatKey === 'junior' 
-                            ? 'bg-orange-500 text-white border-orange-600 scale-105' 
-                            : 'bg-white text-orange-600 border-orange-200 hover:bg-orange-50'}`}
-                    >
-                        <span className="text-xl lg:text-2xl">🌟</span> 生活小達人 <span className="text-xs lg:text-sm font-normal">(中低年級)</span>
-                    </button>
-                    
                     <button 
                         onClick={() => handleCategorySwitch('social')}
                         className={`px-4 py-2 lg:px-6 lg:py-3 rounded-2xl font-bold text-base lg:text-xl shadow-lg transition-all duration-300 flex items-center gap-2 border-4
@@ -496,6 +486,16 @@
                             : 'bg-white text-teal-600 border-teal-200 hover:bg-teal-50'}`}
                     >
                         <span className="text-xl lg:text-2xl">👼</span> 禮貌小天使 <span className="text-xs lg:text-sm font-normal">(人際規矩)</span>
+                    </button>
+
+                    <button 
+                        onClick={() => handleCategorySwitch('junior')}
+                        className={`px-4 py-2 lg:px-6 lg:py-3 rounded-2xl font-bold text-base lg:text-xl shadow-lg transition-all duration-300 flex items-center gap-2 border-4
+                            ${currentCatKey === 'junior' 
+                            ? 'bg-orange-500 text-white border-orange-600 scale-105' 
+                            : 'bg-white text-orange-600 border-orange-200 hover:bg-orange-50'}`}
+                    >
+                        <span className="text-xl lg:text-2xl">🌟</span> 生活小達人 <span className="text-xs lg:text-sm font-normal">(中低年級)</span>
                     </button>
 
                     <button 
